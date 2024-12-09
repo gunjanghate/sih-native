@@ -9,7 +9,12 @@ import {
   Image,
   Modal,
   Alert,
+  Dimensions,
+  TouchableWithoutFeedback,
+  Picker,
 } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 const ParkingApp = () => {
   const parkingData = [
@@ -17,9 +22,9 @@ const ParkingApp = () => {
       id: 1,
       name: "Abdul Parking Boom",
       price: "Rs 30/hr",
-      distance: "5 mins",
-      spots: "35 spots",
-      bikeSpots: "15 spots",
+      distance: 15, // Converted to number for sorting
+      spots: 35, // Converted to number for sorting
+      bikeSpots: 15, // Converted to number for sorting
       address: "Lapataganj, Ganj_Ga",
       image: "https://via.placeholder.com/300x150",
     },
@@ -27,10 +32,20 @@ const ParkingApp = () => {
       id: 2,
       name: "Parking Pro",
       price: "Rs 25/hr",
-      distance: "3 mins",
-      spots: "12 spots",
-      bikeSpots: "5 spots",
+      distance: 3,
+      spots: 12,
+      bikeSpots: 5,
       address: "Central Park, Metro Area",
+      image: "https://via.placeholder.com/300x150",
+    },
+    {
+      id: 3,
+      name: "Parking King",
+      price: "Rs 40/hr",
+      distance: 8,
+      spots: 50,
+      bikeSpots: 20,
+      address: "Kingdom Park, City",
       image: "https://via.placeholder.com/300x150",
     },
   ];
@@ -39,6 +54,8 @@ const ParkingApp = () => {
   const [selectedParking, setSelectedParking] = useState(null);
   const [trackedParkings, setTrackedParkings] = useState({});
   const [intervalIds, setIntervalIds] = useState({});
+  const [sortCriteria, setSortCriteria] = useState("distance"); // Default sort by distance
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
   // Function to handle card click
   const handleCardClick = (item) => {
@@ -74,16 +91,34 @@ const ParkingApp = () => {
     };
   }, [intervalIds]);
 
+  // Sorting the parking data based on selected criteria
+  const sortedParkingData = [...parkingData].sort((a, b) => {
+    switch (sortCriteria) {
+      case "distance":
+        return a.distance - b.distance;
+      case "price":
+        const priceA = parseInt(a.price.replace("Rs ", "").replace("/hr", ""));
+        const priceB = parseInt(b.price.replace("Rs ", "").replace("/hr", ""));
+        return priceA - priceB;
+      case "carSpots":
+        return a.spots - b.spots;
+      case "bikeSpots":
+        return a.bikeSpots - b.bikeSpots;
+      default:
+        return 0;
+    }
+  });
+
   const renderParkingCard = ({ item }) => (
-    <TouchableOpacity onPress={() => handleCardClick(item)} activeOpacity={0.9}>
+    <TouchableOpacity onPress={() => handleCardClick(item)} activeOpacity={0.8}>
       <View style={styles.card}>
         <Image source={{ uri: item.image }} style={styles.cardImage} />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{item.name}</Text>
           <Text style={styles.cardSubtitle}>{item.price}</Text>
           <View style={styles.cardDetails}>
-            <Text style={styles.cardDetailText}>{item.distance}</Text>
-            <Text style={styles.cardDetailText}>{item.spots}</Text>
+            <Text style={styles.cardDetailText}>{item.distance} mins</Text>
+            <Text style={styles.cardDetailText}>{item.spots} car spots</Text>
           </View>
           <Text style={styles.cardAddress}>{item.address}</Text>
         </View>
@@ -101,19 +136,35 @@ const ParkingApp = () => {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search by Parking name"
-          style={styles.searchInput}
-        />
-        <TouchableOpacity style={styles.sortButton}>
+        <TextInput placeholder="Search by Parking name" style={styles.searchInput} />
+        <TouchableOpacity
+          style={styles.sortButton}
+          onPress={() => setShowSortDropdown(!showSortDropdown)}
+        >
           <Text style={styles.sortButtonText}>Sort By</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Sort Dropdown */}
+      {showSortDropdown && (
+        <View style={styles.dropdownContainer}>
+          <Picker
+            selectedValue={sortCriteria}
+            style={styles.dropdown}
+            onValueChange={(itemValue) => setSortCriteria(itemValue)}
+          >
+            <Picker.Item label="Distance" value="distance" />
+            <Picker.Item label="Price" value="price" />
+            <Picker.Item label="Car Spots" value="carSpots" />
+            <Picker.Item label="Bike Spots" value="bikeSpots" />
+          </Picker>
+        </View>
+      )}
+
       {/* Parking List */}
       <Text style={styles.listTitle}>Parkings Available Near You!</Text>
       <FlatList
-        data={parkingData}
+        data={sortedParkingData}
         renderItem={renderParkingCard}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -129,9 +180,7 @@ const ParkingApp = () => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>
-                Do you want to track this parking?
-              </Text>
+              <Text style={styles.modalTitle}>Do you want to track this parking?</Text>
               <Text style={styles.modalText}>{selectedParking.name}</Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity
@@ -183,6 +232,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    width: "100%",
   },
   searchInput: {
     flex: 1,
@@ -195,6 +245,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 2,
+    width: width - 80, // Dynamic width based on screen size
   },
   sortButton: {
     backgroundColor: "#6C63FF",
@@ -206,6 +257,21 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  dropdownContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginTop: 10,
+    width: "100%",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  dropdown: {
+    height: 40,
+    width: "100%",
+    color: "#333",
   },
   listTitle: {
     fontSize: 16,
@@ -224,11 +290,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 2,
+    marginHorizontal: 5,
+    minWidth: width - 30, // Dynamic width of cards
+    maxWidth: "100%", // Ensure cards stay within the screen width
   },
   cardImage: {
     width: "100%",
     height: 150,
     resizeMode: "cover",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   cardContent: {
     padding: 10,
@@ -237,6 +308,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 5,
+    color: "#333",
   },
   cardSubtitle: {
     fontSize: 14,
@@ -290,12 +362,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 10,
     alignItems: "center",
+    justifyContent: "center",
   },
   modalYesButton: {
     backgroundColor: "#6C63FF",
+    opacity: 0.9,
   },
   modalNoButton: {
     backgroundColor: "#999",
+    opacity: 0.9,
   },
   modalButtonText: {
     color: "#fff",

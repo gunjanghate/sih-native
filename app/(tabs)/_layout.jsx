@@ -113,6 +113,8 @@ export default function TabsLayout() {
   const handleLogout = () => {
     auth.signOut().then(() => {
       console.log('User logged out');
+      console.log('Navigating to:', '/(auth)/LoginScreen');
+
       navigation.replace('/(auth)/LoginScreen'); // Ensure path is correct
     }).catch((error) => {
       console.error("Logout error", error);
