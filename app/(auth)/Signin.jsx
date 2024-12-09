@@ -65,16 +65,17 @@ const SignIn = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "80%",
+    justifyContent: "center", // Center content vertically
+    alignItems: "center", // Center content horizontally
+    padding: 20, // Optional: padding for extra space
   },
   input: {
     backgroundColor: "white",
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
-    width: "100%",
+    width: "100%", // Ensure inputs take up full width
+    maxWidth: 350, // Optional: maximum width for inputs
   },
   button: {
     backgroundColor: "#0782F9",
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
+    maxWidth: 350, // Optional: maximum width for button
   },
   buttonText: {
     color: "white",

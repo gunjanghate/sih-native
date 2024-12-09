@@ -32,14 +32,15 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    width: "80%",
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
+    padding: 20, // Optional: add some padding to prevent touching the edges
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 40,
+    textAlign: "center", // Ensure text is centered
   },
   button: {
     backgroundColor: "#0782F9",

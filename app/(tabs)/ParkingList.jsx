@@ -9,7 +9,10 @@ import {
   Image,
   Modal,
   Alert,
+  Dimensions,
 } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 const ParkingApp = () => {
   const parkingData = [
@@ -17,9 +20,9 @@ const ParkingApp = () => {
       id: 1,
       name: "Abdul Parking Boom",
       price: "Rs 30/hr",
-      distance: "5 mins",
-      spots: "35 spots",
-      bikeSpots: "15 spots",
+      distance: 15,
+      spots: 35,
+      bikeSpots: 15,
       address: "Lapataganj, Ganj_Ga",
       image: "https://via.placeholder.com/300x150",
     },
@@ -27,10 +30,20 @@ const ParkingApp = () => {
       id: 2,
       name: "Parking Pro",
       price: "Rs 25/hr",
-      distance: "3 mins",
-      spots: "12 spots",
-      bikeSpots: "5 spots",
+      distance: 3,
+      spots: 12,
+      bikeSpots: 5,
       address: "Central Park, Metro Area",
+      image: "https://via.placeholder.com/300x150",
+    },
+    {
+      id: 3,
+      name: "Parking King",
+      price: "Rs 40/hr",
+      distance: 8,
+      spots: 50,
+      bikeSpots: 20,
+      address: "Kingdom Park, City",
       image: "https://via.placeholder.com/300x150",
     },
   ];
@@ -39,8 +52,10 @@ const ParkingApp = () => {
   const [selectedParking, setSelectedParking] = useState(null);
   const [trackedParkings, setTrackedParkings] = useState({});
   const [intervalIds, setIntervalIds] = useState({});
+  const [sortCriteria, setSortCriteria] = useState("distance");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
 
-  // Function to handle card click
+  // Handle card click
   const handleCardClick = (item) => {
     if (trackedParkings[item.id]) {
       Alert.alert("Already Tracked", "This parking lot is already being tracked!");
@@ -50,12 +65,12 @@ const ParkingApp = () => {
     }
   };
 
-  // Function to start tracking
+  // Start tracking the parking
   const startTracking = () => {
     setTrackedParkings((prev) => ({ ...prev, [selectedParking.id]: true }));
     setModalVisible(false);
 
-    // Notification every 30 seconds
+    // Start notification every 30 seconds
     const intervalId = setInterval(() => {
       Alert.alert(
         "Parking Update",
@@ -63,37 +78,75 @@ const ParkingApp = () => {
       );
     }, 30000);
 
-    // Store interval ID to stop tracking later
     setIntervalIds((prev) => ({ ...prev, [selectedParking.id]: intervalId }));
   };
 
-  // Cleanup intervals when component unmounts
-  useEffect(() => {
-    return () => {
-      Object.values(intervalIds).forEach(clearInterval);
-    };
-  }, [intervalIds]);
+  // Stop tracking and notifications
+  const stopTracking = (id) => {
+    clearInterval(intervalIds[id]);
+    setIntervalIds((prev) => {
+      const newIntervals = { ...prev };
+      delete newIntervals[id]; // Remove the stopped interval
+      return newIntervals;
+    });
+    setTrackedParkings((prev) => {
+      const newTracking = { ...prev };
+      delete newTracking[id]; // Stop tracking this parking
+      return newTracking;
+    });
+  };
+
+  // Sorting the parking data
+  const sortedParkingData = [...parkingData].sort((a, b) => {
+    switch (sortCriteria) {
+      case "distance":
+        return a.distance - b.distance;
+      case "price":
+        const priceA = parseInt(a.price.replace("Rs ", "").replace("/hr", ""));
+        const priceB = parseInt(b.price.replace("Rs ", "").replace("/hr", ""));
+        return priceA - priceB;
+      case "carSpots":
+        return a.spots - b.spots;
+      case "bikeSpots":
+        return a.bikeSpots - b.bikeSpots;
+      default:
+        return 0;
+    }
+  });
 
   const renderParkingCard = ({ item }) => (
-    <TouchableOpacity onPress={() => handleCardClick(item)} activeOpacity={0.9}>
-      <View style={styles.card}>
+    <View style={styles.cardContainer}>
+      <TouchableOpacity
+        onPress={() => handleCardClick(item)}
+        activeOpacity={0.8}
+        style={styles.card}
+      >
         <Image source={{ uri: item.image }} style={styles.cardImage} />
         <View style={styles.cardContent}>
           <Text style={styles.cardTitle}>{item.name}</Text>
           <Text style={styles.cardSubtitle}>{item.price}</Text>
           <View style={styles.cardDetails}>
-            <Text style={styles.cardDetailText}>{item.distance}</Text>
-            <Text style={styles.cardDetailText}>{item.spots}</Text>
+            <Text style={styles.cardDetailText}>{item.distance} mins</Text>
+            <Text style={styles.cardDetailText}>{item.spots} car spots</Text>
           </View>
           <Text style={styles.cardAddress}>{item.address}</Text>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+
+      {/* Show stop notification button if the parking is being tracked */}
+      {trackedParkings[item.id] && (
+        <TouchableOpacity
+          style={styles.stopButton}
+          onPress={() => stopTracking(item.id)}
+        >
+          <Text style={styles.stopButtonText}>Stop Notifications</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>View All Parking Locations</Text>
         <Text style={styles.headerAddress}>Address: undefined, Nagpur, 440013</Text>
@@ -101,19 +154,35 @@ const ParkingApp = () => {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <TextInput
-          placeholder="Search by Parking name"
-          style={styles.searchInput}
-        />
-        <TouchableOpacity style={styles.sortButton}>
+        <TextInput placeholder="Search by Parking name" style={styles.searchInput} />
+        <TouchableOpacity
+          style={styles.sortButton}
+          onPress={() => setShowSortDropdown(!showSortDropdown)}
+        >
           <Text style={styles.sortButtonText}>Sort By</Text>
         </TouchableOpacity>
       </View>
 
+      {/* Sort Dropdown */}
+      {showSortDropdown && (
+        <View style={styles.dropdownContainer}>
+          <Picker
+            selectedValue={sortCriteria}
+            style={styles.dropdown}
+            onValueChange={(itemValue) => setSortCriteria(itemValue)}
+          >
+            <Picker.Item label="Distance" value="distance" />
+            <Picker.Item label="Price" value="price" />
+            <Picker.Item label="Car Spots" value="carSpots" />
+            <Picker.Item label="Bike Spots" value="bikeSpots" />
+          </Picker>
+        </View>
+      )}
+
       {/* Parking List */}
       <Text style={styles.listTitle}>Parkings Available Near You!</Text>
       <FlatList
-        data={parkingData}
+        data={sortedParkingData}
         renderItem={renderParkingCard}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -129,9 +198,7 @@ const ParkingApp = () => {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>
-                Do you want to track this parking?
-              </Text>
+              <Text style={styles.modalTitle}>Do you want to track this parking?</Text>
               <Text style={styles.modalText}>{selectedParking.name}</Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity
@@ -183,6 +250,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    width: "100%",
   },
   searchInput: {
     flex: 1,
@@ -191,10 +259,6 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     marginRight: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
   },
   sortButton: {
     backgroundColor: "#6C63FF",
@@ -207,6 +271,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 14,
   },
+  dropdownContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    marginTop: 10,
+    width: "100%",
+  },
+  dropdown: {
+    height: 40,
+    width: "100%",
+    color: "#333",
+  },
   listTitle: {
     fontSize: 16,
     fontWeight: "bold",
@@ -214,6 +289,9 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     paddingBottom: 20,
+  },
+  cardContainer: {
+    position: "relative",
   },
   card: {
     backgroundColor: "#fff",
@@ -229,6 +307,8 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 150,
     resizeMode: "cover",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   cardContent: {
     padding: 10,
@@ -237,6 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 5,
+    color: "#333",
   },
   cardSubtitle: {
     fontSize: 14,
@@ -256,6 +337,19 @@ const styles = StyleSheet.create({
   cardAddress: {
     fontSize: 12,
     color: "#999",
+  },
+  stopButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "red",
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  stopButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
   modalOverlay: {
     flex: 1,
@@ -290,6 +384,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingVertical: 10,
     alignItems: "center",
+    justifyContent: "center",
   },
   modalYesButton: {
     backgroundColor: "#6C63FF",
