@@ -32,6 +32,10 @@ const SignIn = () => {
       });
   };
 
+  const handleSignUp = () => {
+    router.push("/(auth)/Signup"); // Navigate to the SignUp screen
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
@@ -49,6 +53,10 @@ const SignIn = () => {
       />
       <TouchableOpacity onPress={handleLogin} style={styles.button}>
         <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity onPress={handleSignUp} style={[styles.button, styles.signUpButton]}>
+        <Text style={styles.buttonText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
     </View>
   );
@@ -79,6 +87,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "700",
     fontSize: 16,
+  },
+  signUpButton: {
+    backgroundColor: "#34C759", // You can adjust the color of the sign-up button here
+    marginTop: 10,
   },
 });
 

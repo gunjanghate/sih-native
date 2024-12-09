@@ -1,32 +1,34 @@
-// import { useRouter } from 'expo-router';
-// import { View, Text, Button } from 'react-native';
-
-// export default function Index() {
-//   const router = useRouter();
-
-//   return (
-//     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-//       <Text>Welcome to Parking App</Text>
-//       <Button title="Get Started" onPress={() => router.push('/(auth)/LoginScreen')} />
-//       {/* <Button title="Go to Tabs" onPress={() => router.push('/(tabs)/ParkingList')} /> */}
-//     </View>
-//   );
-// }
-// //user ek baar signup krne ke baad vo sidha tab parking list mai rediret kare
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
 export default function LandingPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already signed up
+    const checkUserStatus = async () => {
+      try {
+        const userStatus = await AsyncStorage.getItem("userSignedUp");
+        if (userStatus === "true") {
+          // Redirect to ParkingList if the user has signed up
+          router.push("/(tabs)/ParkingList");
+        }
+      } catch (error) {
+        console.error("Error checking user status", error);
+      }
+    };
+
+    checkUserStatus();
+  }, []);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoContainer}>
-          {/* <Image source={require("../assets/logo.png")} style={styles.logo} /> */}
           <Text style={styles.title}>Park-N-Go</Text>
         </View>
         <TouchableOpacity onPress={() => setMenuOpen((prev) => !prev)}>
@@ -45,14 +47,6 @@ export default function LandingPage() {
 
       {/* Main Content */}
       <View style={styles.mainContent}>
-        {/* <Image
-          source={require("../assets/test.png")}
-          style={styles.illustration}
-        />
-        <Image
-          source={require("../assets/CarTest.gif")}
-          style={styles.carAnimation}
-        /> */}
         <Text style={styles.description}>
           Discover nearby parkings, save time, and park smartly.
         </Text>
@@ -60,7 +54,7 @@ export default function LandingPage() {
           style={styles.getStartedButton}
           onPress={() => {
             setTimeout(() => {
-              router.push("/(auth)/LoginScreen");
+              router.push("/(auth)/Signin");
             }, 500);
           }}
         >
@@ -70,9 +64,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>
-          © 2024 ParkSmart ~ All rights reserved
-        </Text>
+        <Text style={styles.footerText}>© 2024 ParkSmart ~ All rights reserved</Text>
       </View>
     </View>
   );
@@ -95,10 +87,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  logo: {
-    width: 40,
-    height: 40,
   },
   title: {
     fontSize: 24,
@@ -137,18 +125,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-  },
-  illustration: {
-    width: "80%",
-    height: 150,
-    resizeMode: "contain",
-    marginBottom: 20,
-  },
-  carAnimation: {
-    width: "70%",
-    height: 150,
-    resizeMode: "contain",
-    marginBottom: 20,
   },
   description: {
     textAlign: "center",
