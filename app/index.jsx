@@ -1,29 +1,70 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LandingPage() {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Check if user is already signed up
     const checkUserStatus = async () => {
       try {
         const userStatus = await AsyncStorage.getItem("userSignedUp");
+        console.log("User status retrieved:", userStatus); // Log retrieved status
         if (userStatus === "true") {
-          // Redirect to ParkingList if the user has signed up
+          console.log("Redirecting to ParkingList...");
           router.push("/(tabs)/ParkingList");
         }
       } catch (error) {
         console.error("Error checking user status", error);
       }
     };
-
+  
     checkUserStatus();
   }, []);
+  //   // Check if the user is already signed up
+  //   const checkUserStatus = async () => {
+  //     try {
+  //       const userStatus = await AsyncStorage.getItem("userSignedUp");
+  //       console.log("User status:", userStatus); // Debug log
+  //       if (userStatus === "true") {
+  //         // Redirect to ParkingList if the user is signed up
+  //         router.push("/(tabs)/ParkingList");
+  //       }
+  //     } catch (error) {
+  //       console.error("Error checking user status", error);
+  //       Alert.alert("Error", "Unable to verify user status.");
+  //     }
+  //   };
 
+  //   checkUserStatus();
+  // }, []);
+  // useEffect(() => {
+  //   const initializeStorage = async () => {
+  //     try {
+  //       await AsyncStorage.setItem("userSignedUp", "true"); // Set the value
+  //       console.log("User status set to true");
+  //     } catch (error) {
+  //       console.error("Error setting user status", error);
+  //     }
+  //   };
+  
+  //   initializeStorage();
+  // }, []);
+  // const checkStorage = async () => {
+  //   try {
+  //     const value = await AsyncStorage.getItem("userSignedUp");
+  //     console.log("Retrieved user status:", value);
+  //   } catch (error) {
+  //     console.error("Error retrieving user status", error);
+  //   }
+  // };
+  
+  // useEffect(() => {
+  //   checkStorage();
+  // }, []);
+  
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -48,7 +89,7 @@ export default function LandingPage() {
       {/* Main Content */}
       <View style={styles.mainContent}>
         <Text style={styles.description}>
-          Discover nearby parkings, save time, and park smartly.
+          Discover nearby parking, save time, and park smartly.
         </Text>
         <TouchableOpacity
           style={styles.getStartedButton}
