@@ -46,7 +46,9 @@ const app = initializeApp(firebaseConfig);
 // This function initializes your Firebase app using the `firebaseConfig` object, allowing you to access Firebase services (e.g., Authentication, Firestore).
 
 // Initialize Firebase Authentication with persistence using AsyncStorage
-const auth = initializeAuth(app);
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 // Export the `auth` object so it can be used throughout the app for authentication functions (e.g., sign-in, sign-out)
 export { auth };

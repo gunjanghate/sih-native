@@ -11,6 +11,9 @@ import {
   Alert,
   Dimensions,
 } from "react-native";
+import * as Location from "expo-location";
+
+import { Button } from 'react-native';
 
 const { width, height } = Dimensions.get("window");
 
@@ -54,6 +57,96 @@ const ParkingApp = () => {
   const [intervalIds, setIntervalIds] = useState({});
   const [sortCriteria, setSortCriteria] = useState("distance");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  // Request location permissions and fetch location
+  // useEffect(() => {
+  //   (async () => {
+  //     let { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status === "denied") {
+  //       setErrorMsg("Permission to access location was denied.");
+  //       // Show an alert to guide the user to enable permissions manually
+  //       Alert.alert(
+  //         "Location Permission Denied",
+  //         "You can enable location permissions in the app settings.",
+  //         [
+  //           { text: "Cancel", onPress: () => console.log("Cancel Pressed") },
+  //           { text: "Open Settings", onPress: () => openSettings() },
+  //         ]
+  //       );
+  //       return;
+  //     }
+  
+  //     if (status !== "granted") {
+  //       setErrorMsg("Permission to access location was not granted.");
+  //       return;
+  //     }
+  
+  //     try {
+  //       let currentLocation = await Location.getCurrentPositionAsync({});
+  //       setLocation(currentLocation);
+  
+  //       // Console log latitude and longitude here
+  //       const { latitude, longitude } = currentLocation.coords;
+  //       console.log("Latitude:", latitude);
+  //       console.log("Longitude:", longitude);
+  //       setErrorMsg("Unable to fetch location");
+  //       console.error("Error fetching location:", error);
+  //     }catch(e){
+  //       setErrorMsg("Unable to fetch location");
+  //       console.error("Error fetching location:", e);
+  //     }
+  //   })();
+  // }, []);
+  useEffect(() => {
+    (async () => {
+      console.log("Started");
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      console.log("Permission Status:", status); // Add this to see the status value
+  
+      if (status === "denied") {
+        console.log("Not granted");
+        setErrorMsg("Permission to access location was denied.");
+        Alert.alert(
+          "Location Permission Denied",
+          "You can enable location permissions in the app settings.",
+          [
+            { text: "Cancel", onPress: () => console.log("Cancel Pressed") },
+            { text: "Open Settings", onPress: () => openSettings() },
+          ]
+        );
+        return;
+      }
+  
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was not granted.");
+        console.log("Not granted");
+        return;
+      }
+  
+      try {
+        console.log("Fetching location...");
+        let currentLocation = await Location.getCurrentPositionAsync({});
+        console.log("Location fetched:", currentLocation); // Add this to log the location
+        setLocation(currentLocation);
+      } catch (error) {
+        console.log("Error while fetching location:", error); // Add this to log the error
+        setErrorMsg("Unable to fetch location");
+      }
+    })();
+  }, []);
+  
+
+  // Open settings for the user to manually enable permissions
+  const openSettings = () => {
+    if (Platform.OS === "ios") {
+      Linking.openURL("app-settings:"); // For iOS
+    } else {
+      Linking.openSettings(); // For Android
+    }
+  };
+
 
   // Handle card click
   const handleCardClick = (item) => {
